@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feira da Lua - Gestão Integrada</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-base: #0b0e14; --bg-sidebar: #111420; --bg-surface: #161a29;
+            --bg-surface-hover: #1f2436; --border: #23283d;
+            --text-primary: #f8fafc; --text-secondary: #94a3b8;
+            --accent: #6366f1; --accent-hover: #4f46e5; --success: #10b981;
+            --danger: #f43f5e; --warning: #f59e0b; --info: #3b82f6;
+            --badge-success-bg: rgba(16, 185, 129, 0.15); --badge-danger-bg: rgba(244, 63, 94, 0.15);
+            --badge-warning-bg: rgba(245, 158, 11, 0.15); --badge-info-bg: rgba(59, 130, 246, 0.15);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-base); color: var(--text-primary); min-height: 100vh; display: flex; overflow-x: hidden; }
+        
+        /* LOGIN */
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; background-color: var(--bg-base); z-index: 1000; }
+        .login-box { background: var(--bg-surface); padding: 2.5rem; border-radius: 16px; width: 100%; max-width: 440px; border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        .login-logo { text-align: center; margin-bottom: 2rem; }
+        .login-logo .icon-wrapper { width: 56px; height: 56px; background: linear-gradient(135deg, var(--accent), #8b5cf6); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto; }
+        .login-logo i { font-size: 1.5rem; color: white; }
+        .login-logo h1 { font-size: 1.5rem; font-weight: 700; }
+        .login-logo p { font-size: 0.875rem; color: var(--text-secondary); }
+        .role-selector { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 1.5rem; background: var(--bg-base); padding: 5px; border-radius: 10px; border: 1px solid var(--border); }
+        .role-btn { background: transparent; border: none; padding: 0.6rem 0.5rem; border-radius: 6px; color: var(--text-secondary); font-size: 0.8rem; font-weight: 500; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .role-btn.active { background-color: var(--accent); color: white; }
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.4rem; }
+        .form-group input { width: 100%; padding: 0.8rem 1rem; background-color: var(--bg-base); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); }
+        .btn-primary { width: 100%; padding: 0.8rem; background-color: var(--accent); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        
+        /* LAYOUT */
+        #app-screen { display: none; width: 100%; height: 100vh; }
+        .sidebar { width: 260px; background-color: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; height: 100vh; position: fixed; }
+        .sidebar-header { height: 72px; display: flex; align-items: center; padding: 0 1.5rem; border-bottom: 1px solid var(--border); gap: 12px; }
+        .sidebar-header .icon-wrapper { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent), #8b5cf6); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .sidebar-header i { color: white; font-size: 0.9rem; }
+        .sidebar-header h1 { font-size: 1.1rem; font-weight: 700; }
+        .sidebar-menu { padding: 1.5rem 1rem; flex: 1; }
+        .menu-title { font-size: 0.7rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 600; margin-bottom: 0.5rem; padding-left: 0.5rem; }
+        .menu-item { display: flex; align-items: center; gap: 12px; padding: 0.75rem 1rem; color: var(--text-secondary); text-decoration: none; border-radius: 8px; font-size: 0.9rem; font-weight: 500; margin-bottom: 0.25rem; cursor: pointer; transition: all 0.2s; }
+        .menu-item:hover, .menu-item.active { background-color: var(--bg-surface-hover); color: var(--text-primary); }
+        .menu-item.active { background-color: var(--accent); color: white; }
+        .menu-item i { width: 20px; text-align: center; }
+        .sidebar-footer { padding: 1rem; border-top: 1px solid var(--border); }
+        
+        .main-content { margin-left: 260px; width: calc(100% - 260px); display: flex; flex-direction: column; }
+        .topbar { height: 72px; background-color: var(--bg-sidebar); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; }
+        .search-bar { display: flex; align-items: center; background-color: var(--bg-base); border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 1rem; width: 300px; }
+        .search-bar i { color: var(--text-secondary); margin-right: 10px; }
+        .search-bar input { background: transparent; border: none; color: var(--text-primary); outline: none; width: 100%; }
+        .user-profile { display: flex; align-items: center; gap: 10px; }
+        .avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #8b5cf6, #6366f1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        
+        /* CONTEÚDO */
+        .dashboard-content { padding: 2rem; }
+        .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; }
+        .page-header h2 { font-size: 1.5rem; font-weight: 700; }
+        .btn-action { background-color: var(--accent); color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn-action:hover { background-color: var(--accent-hover); }
+        
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .kpi-card { background-color: var(--bg-surface); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); position: relative; }
+        .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background-color: var(--accent); }
+        .kpi-card.success::before { background-color: var(--success); }
+        .kpi-card.info::before { background-color: var(--info); }
+        .kpi-card.warning::before { background-color: var(--warning); }
+        .kpi-header { display: flex; justify-content: space-between; margin-bottom: 1rem; }
+        .kpi-title { font-size: 0.85rem; color: var(--text-secondary); }
+        .kpi-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .kpi-icon.green { background: var(--badge-success-bg); color: var(--success); }
+        .kpi-icon.blue { background: var(--badge-info-bg); color: var(--info); }
+        .kpi-icon.purple { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+        .kpi-value { font-size: 1.8rem; font-weight: 700; }
+        .kpi-trend { font-size: 0.8rem; margin-top: 0.5rem; }
+
+        .middle-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+        .card { background-color: var(--bg-surface); border-radius: 12px; border: 1px solid var(--border); padding: 1.5rem; }
+        .card-header { display: flex; justify-content: space-between; margin-bottom: 1.5rem; }
+        .card-title { font-size: 1rem; font-weight: 600; }
+        .chart-container { display: flex; align-items: flex-end; justify-content: space-between; height: 180px; }
+        .chart-bar-group { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 12%; }
+        .chart-bars { display: flex; gap: 4px; align-items: flex-end; height: 150px; width: 100%; justify-content: center; }
+        .bar { width: 12px; border-radius: 4px 4px 0 0; }
+        .bar.primary { background-color: var(--accent); } .bar.secondary { background-color: var(--border); }
+        .chart-label { font-size: 0.75rem; color: var(--text-secondary); }
+        
+        .quick-action-list { display: flex; flex-direction: column; gap: 10px; }
+        .quick-action-btn { background-color: var(--bg-base); border: 1px solid var(--border); padding: 1rem; border-radius: 8px; display: flex; align-items: center; gap: 12px; color: var(--text-primary); font-weight: 500; cursor: pointer; transition: 0.2s; text-align: left; width: 100%; }
+        .quick-action-btn:hover { border-color: var(--accent); background-color: var(--bg-surface-hover); }
+        .quick-action-btn i { color: var(--accent); font-size: 1.1rem; }
+
+        .table-container { background-color: var(--bg-surface); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
+        .table-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { padding: 1rem 1.5rem; font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; border-bottom: 1px solid var(--border); background-color: rgba(0,0,0,0.1); }
+        td { padding: 1rem 1.5rem; font-size: 0.9rem; border-bottom: 1px solid var(--border); }
+        .badge { padding: 0.35rem 0.75rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; display: inline-flex; }
+        .badge-warning { background-color: var(--badge-warning-bg); color: var(--warning); }
+        .badge-danger { background-color: var(--badge-danger-bg); color: var(--danger); }
+        .badge-success { background-color: var(--badge-success-bg); color: var(--success); }
+        .btn-table-action { background: var(--badge-info-bg); color: var(--info); border: 1px solid rgba(59, 130, 246, 0.2); padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s; }
+        .btn-table-action:hover { background: var(--info); color: white; }
+        .btn-table-action.whatsapp { background: var(--badge-success-bg); color: var(--success); border-color: rgba(16, 185, 129, 0.2); }
+        .btn-table-action.whatsapp:hover { background: var(--success); color: white; }
+        .btn-table-action.receber { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border-color: rgba(139, 92, 246, 0.2); }
+        .btn-table-action.receber:hover { background: #8b5cf6; color: white; }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: var(--bg-surface); width: 100%; max-width: 500px; border-radius: 16px; border: 1px solid var(--border); padding: 2rem; }
+        .modal-header { display: flex; justify-content: space-between; margin-bottom: 1.5rem; }
+        .modal-title { font-size: 1.25rem; font-weight: 700; }
+        .modal-close { background: transparent; border: none; color: var(--text-secondary); font-size: 1.2rem; cursor: pointer; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text-primary); padding: 0.8rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        
+        .page-section { display: none; animation: fadeIn 0.3s ease; }
+        .page-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 1024px) { .middle-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <!-- TELA DE LOGIN -->
+    <div id="login-screen">
+        <div class="login-box">
+            <div class="login-logo">
+                <div class="icon-wrapper"><i class="fa-solid fa-moon"></i></div>
+                <h1>Feira da Lua</h1>
+                <p>Selecione seu perfil para continuar</p>
+            </div>
+            <div class="role-selector">
+                <button type="button" class="role-btn active" data-role="admin" onclick="selectRole('admin')"><i class="fa-solid fa-user-shield"></i> Administrador</button>
+                <button type="button" class="role-btn" data-role="feirante" onclick="selectRole('feirante')"><i class="fa-solid fa-store"></i> Feirante</button>
+            </div>
+            <form id="login-form">
+                <div class="form-group"><label>Usuário</label><input type="text" id="username" readonly></div>
+                <div class="form-group"><label>Senha</label><input type="password" id="password" readonly></div>
+                <button type="submit" class="btn-primary">Entrar no Sistema</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SISTEMA PRINCIPAL -->
+    <div id="app-screen">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="icon-wrapper"><i class="fa-solid fa-moon"></i></div>
+                <h1>Feira da Lua</h1>
+            </div>
+            <div class="sidebar-menu" id="sidebar-menu"></div>
+            <div class="sidebar-footer">
+                <a href="#" class="menu-item" id="logout-btn" style="color: var(--danger);"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sair</a>
+            </div>
+        </aside>
+
+        <div class="main-content">
+            <header class="topbar">
+                <div class="search-bar"><i class="fa-solid fa-magnifying-glass"></i><input type="text" placeholder="Pesquisar..."></div>
+                <div class="user-profile">
+                    <div class="avatar" id="avatar-initials">AD</div>
+                    <div class="user-info">
+                        <h4 id="nav-username" style="font-size: 0.85rem;">Administrador</h4>
+                        <p id="nav-role" style="font-size: 0.75rem; color: var(--text-secondary);">Gestor</p>
+                    </div>
+                </div>
+            </header>
+
+            <div class="dashboard-content">
+                
+                <!-- ================= ADMIN: VISÃO GERAL ================= -->
+                <div id="page-visao-geral" class="page-section active">
+                    <div class="page-header">
+                        <div>
+                            <h2>Visão Geral</h2>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem;">Acompanhe o desempenho das suas feiras em tempo real.</p>
+                        </div>
+                        <button class="btn-action" onclick="openModal('modal-nova-feira')"><i class="fa-solid fa-plus"></i> Lançar Nova Feira</button>
+                    </div>
+
+                    <div class="kpi-grid">
+                        <div class="kpi-card success">
+                            <div class="kpi-header"><span class="kpi-title">Receita Total (Mês)</span><div class="kpi-icon green"><i class="fa-solid fa-arrow-trend-up"></i></div></div>
+                            <div class="kpi-value">R$ 4.520,00</div>
+                            <div class="kpi-trend" style="color: var(--success);"><i class="fa-solid fa-arrow-up"></i> +15% vs mês anterior</div>
+                        </div>
+                        <div class="kpi-card info">
+                            <div class="kpi-header"><span class="kpi-title">Taxas Pendentes</span><div class="kpi-icon blue"><i class="fa-solid fa-clock"></i></div></div>
+                            <div class="kpi-value" id="kpi-pendentes">R$ 142,00</div>
+                            <div class="kpi-trend" style="color: var(--danger);"><i class="fa-solid fa-triangle-exclamation"></i> 2 feirantes em débito</div>
+                        </div>
+                        <div class="kpi-card warning">
+                            <div class="kpi-header"><span class="kpi-title">Feirantes Ativos</span><div class="kpi-icon purple"><i class="fa-solid fa-users"></i></div></div>
+                            <div class="kpi-value">48</div>
+                        </div>
+                    </div>
+
+                    <div class="middle-grid">
+                        <div class="card">
+                            <div class="card-header"><span class="card-title">Faturamento das Últimas 6 Feiras</span></div>
+                            <div class="chart-container">
+                                <div class="chart-bar-group"><div class="chart-bars"><div class="bar primary" style="height: 60%;"></div></div><span class="chart-label">Set</span></div>
+                                <div class="chart-bar-group"><div class="chart-bars"><div class="bar primary" style="height: 80%;"></div></div><span class="chart-label">Out 1</span></div>
+                                <div class="chart-bar-group"><div class="chart-bars"><div class="bar primary" style="height: 50%;"></div></div><span class="chart-label">Out 2</span></div>
+                                <div class="chart-bar-group"><div class="chart-bars"><div class="bar primary" style="height: 90%;"></div></div><span class="chart-label">Out 3</span></div>
+                                <div class="chart-bar-group"><div class="chart-bars"><div class="bar primary" style="height: 70%;"></div></div><span class="chart-label">Out 4</span></div>
+                                <div class="chart-bar-group"><div class="chart-bars"><div class="bar primary" style="height: 100%;"></div></div><span class="chart-label">Atual</span></div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header"><span class="card-title">Ações Rápidas</span></div>
+                            <div class="quick-action-list">
+                                <button class="quick-action-btn" onclick="openModal('modal-aviso')"><i class="fa-solid fa-bullhorn"></i> Enviar Aviso aos Feirantes</button>
+                                <button class="quick-action-btn" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir Relatório Financeiro</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= ADMIN: GERENCIAR FEIRAS (LANÇAMENTOS) ================= -->
+                <div id="page-gerenciar-feiras" class="page-section">
+                    <div class="page-header">
+                        <div>
+                            <h2>Gerenciar Feiras</h2>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem;">Lançamento de feiras e controle de presença.</p>
+                        </div>
+                        <button class="btn-action" onclick="openModal('modal-nova-feira')"><i class="fa-solid fa-plus"></i> Nova Feira</button>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr><th>Data</th><th>Nome da Feira</th><th>Local</th><th>Feirantes Presentes</th><th>Status</th><th>Ações</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>22/10/2026</td>
+                                    <td style="font-weight: 600;">Feira de Outubro</td>
+                                    <td>Praça Central</td>
+                                    <td>48 / 50</td>
+                                    <td><span class="badge badge-success">Confirmada</span></td>
+                                    <td><button class="btn-table-action" onclick="alert('Abrindo lista de presença...')"><i class="fa-solid fa-clipboard-user"></i> Presenças</button></td>
+                                </tr>
+                                <tr>
+                                    <td>15/10/2026</td>
+                                    <td style="font-weight: 600;">Feira Padrão</td>
+                                    <td>Praça Central</td>
+                                    <td>45 / 48</td>
+                                    <td><span class="badge badge-success">Concluída</span></td>
+                                    <td><button class="btn-table-action" onclick="alert('Abrindo lista de presença...')"><i class="fa-solid fa-clipboard-user"></i> Presenças</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ================= ADMIN: FINANCEIRO (COBRANÇAS E RECEBIMENTOS) ================= -->
+                <div id="page-financeiro" class="page-section">
+                    <div class="page-header">
+                        <div>
+                            <h2>Financeiro & Cobranças</h2>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem;">Dê baixa nos pagamentos recebidos e cobre os inadimplentes.</p>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <div class="table-header">
+                            <div>
+                                <div class="card-title" style="color: var(--warning); display: flex; gap: 8px;"><i class="fa-solid fa-triangle-exclamation"></i> Controle de Taxas</div>
+                                <span style="font-size: 0.85rem; color: var(--text-secondary);">Gerencie os pagamentos de cada feirante.</span>
+                            </div>
+                            <div class="badge badge-danger" id="badge-total-pendente">Total Pendente: R$ 142,00</div>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr><th>Data da Feira</th><th>Feirante</th><th>Valor da Taxa</th><th>Status</th><th>Ações</th></tr>
+                            </thead>
+                            <tbody id="tabela-financeiro">
+                                <!-- Linhas geradas pelo JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ================= FEIRANTE: MINHAS TAXAS ================= -->
+                <div id="page-minhas-taxas" class="page-section">
+                    <div class="page-header">
+                        <div>
+                            <h2>Minhas Taxas</h2>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem;">Acompanhe seus débitos e histórico de pagamentos.</p>
+                        </div>
+                    </div>
+
+                    <div class="kpi-grid">
+                        <div class="kpi-card info">
+                            <div class="kpi-header"><span class="kpi-title">Total a Pagar (Pendente)</span></div>
+                            <div class="kpi-value" style="color: var(--danger);" id="feirante-total-devedor">R$ 0,00</div>
+                        </div>
+                        <div class="kpi-card success">
+                            <div class="kpi-header"><span class="kpi-title">Total Pago</span></div>
+                            <div class="kpi-value" style="color: var(--success);" id="feirante-total-pago">R$ 0,00</div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <div class="table-header">
+                            <div class="card-title">Histórico de Pagamentos</div>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr><th>Data da Feira</th><th>Valor</th><th>Status</th></tr>
+                            </thead>
+                            <tbody id="tabela-feirante">
+                                <!-- Linhas geradas pelo JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAIS -->
+    <div class="modal-overlay" id="modal-nova-feira">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Cadastrar Nova Feira</h3>
+                <button class="modal-close" onclick="closeModal('modal-nova-feira')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="event.preventDefault(); alert('Feira cadastrada!'); closeModal('modal-nova-feira');">
+                <div class="form-group"><label>Nome / Local da Feira</label><input type="text" placeholder="Ex: Feira de Natal" required style="width: 100%; padding: 0.8rem; background: var(--bg-base); border: 1px solid var(--border); border-radius: 8px; color: white;"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Data</label><input type="date" required style="width: 100%; padding: 0.8rem; background: var(--bg-base); border: 1px solid var(--border); border-radius: 8px; color: white;"></div>
+                    <div class="form-group"><label>Taxa Padrão (R$)</label><input type="number" value="55.00" step="0.01" required style="width: 100%; padding: 0.8rem; background: var(--bg-base); border: 1px solid var(--border); border-radius: 8px; color: white;"></div>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: flex-end;">
+                    <button type="button" class="btn-secondary" onclick="closeModal('modal-nova-feira')">Cancelar</button>
+                    <button type="submit" class="btn-action">Salvar Feira</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-aviso">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Enviar Aviso em Massa</h3>
+                <button class="modal-close" onclick="closeModal('modal-aviso')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="event.preventDefault(); closeModal('modal-aviso'); alert('✅ Aviso enviado para os feirantes!');">
+                <div class="form-group">
+                    <label>Mensagem do Aviso</label>
+                    <textarea rows="4" placeholder="Ex: Atenção feirantes, a feira desta quinta-feira..." required style="width: 100%; padding: 0.8rem; background: var(--bg-base); border: 1px solid var(--border); border-radius: 8px; color: white; resize: none; font-family: inherit;"></textarea>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: flex-end;">
+                    <button type="button" class="btn-secondary" onclick="closeModal('modal-aviso')">Cancelar</button>
+                    <button type="submit" class="btn-action"><i class="fa-solid fa-paper-plane"></i> Enviar Aviso</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // "BANCO DE DADOS" SIMULADO
+        // ==========================================
+        let bancoDeDados = {
+            taxas: [
+                { id: 1, data: "15/10/2026", feirante: "Cachorro Quente", valor: 55.00, status: "Pendente" },
+                { id: 2, data: "08/10/2026", feirante: "Cachorro Quente", valor: 55.00, status: "Pendente" },
+                { id: 3, data: "01/10/2026", feirante: "Cachorro Quente", valor: 32.00, status: "Pendente" },
+                { id: 4, data: "15/10/2026", feirante: "Doces da Vovó", valor: 55.00, status: "Pago" },
+                { id: 5, data: "08/10/2026", feirante: "Doces da Vovó", valor: 55.00, status: "Pago" }
+            ]
+        };
+
+        const credenciais = {
+            admin: { user: "admin", pass: "1234", nome: "Administrador", roleName: "Gestor", initials: "AD", 
+                menu: [
+                    { icon: "fa-chart-pie", text: "Visão Geral", target: "page-visao-geral", active: true }, 
+                    { icon: "fa-store", text: "Gerenciar Feiras", target: "page-gerenciar-feiras" }, 
+                    { icon: "fa-file-invoice-dollar", text: "Financeiro", target: "page-financeiro" }
+                ]
+            },
+            feirante: { user: "cachorro_quente", pass: "1234", nome: "Cachorro Quente", roleName: "Feirante", initials: "CQ", 
+                menu: [{ icon: "fa-chart-line", text: "Minhas Taxas", target: "page-minhas-taxas", active: true }]
+            }
+        };
+
+        let perfilSelecionado = "admin";
+        const loginScreen = document.getElementById('login-screen');
+        const appScreen = document.getElementById('app-screen');
+        const sidebarMenu = document.getElementById('sidebar-menu');
+
+        // --- LOGIN ---
+        function selectRole(role) {
+            perfilSelecionado = role;
+            document.querySelectorAll('.role-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.role === role));
+            document.getElementById('username').value = credenciais[role].user;
+            document.getElementById('password').value = credenciais[role].pass;
+        }
+        selectRole('admin');
+
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const dados = credenciais[perfilSelecionado];
+            if (document.getElementById('username').value === dados.user && document.getElementById('password').value === dados.pass) {
+                sessionStorage.setItem('logado', 'true');
+                sessionStorage.setItem('perfil', perfilSelecionado);
+                entrarNoSistema(perfilSelecionado);
+            } else { alert("Credenciais inválidas."); }
+        });
+
+        function entrarNoSistema(role) {
+            loginScreen.style.display = 'none';
+            appScreen.style.display = 'flex';
+            const dados = credenciais[role];
+            document.getElementById('nav-username').textContent = dados.nome;
+            document.getElementById('nav-role').textContent = dados.roleName;
+            document.getElementById('avatar-initials').textContent = dados.initials;
+            
+            sidebarMenu.innerHTML = '<div class="menu-title">Principal</div>';
+            dados.menu.forEach(item => {
+                const a = document.createElement('a');
+                a.href = "#";
+                a.className = `menu-item ${item.active ? 'active' : ''}`;
+                a.onclick = (e) => { e.preventDefault(); trocarPagina(item.target, a); };
+                a.innerHTML = `<i class="fa-solid ${item.icon}"></i> ${item.text}`;
+                sidebarMenu.appendChild(a);
+            });
+
+            // Atualiza os dados na tela logo que loga
+            atualizarTabelas();
+
+            const primeiraPagina = dados.menu.find(m => m.active).target;
+            trocarPagina(primeiraPagina);
+        }
+
+        if (sessionStorage.getItem('logado') === 'true') entrarNoSistema(sessionStorage.getItem('perfil') || 'admin');
+
+        document.getElementById('logout-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            sessionStorage.clear();
+            appScreen.style.display = 'none';
+            loginScreen.style.display = 'flex';
+            selectRole('admin');
+        });
+
+        function trocarPagina(pageId, menuElement = null) {
+            document.querySelectorAll('.page-section').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+
+            if (menuElement) {
+                document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+                menuElement.classList.add('active');
+            }
+        }
+
+        // ==========================================
+        // LÓGICA DE NEGÓCIO (TABELAS E AÇÕES)
+        // ==========================================
+
+        // Função que desenha as tabelas com base nos dados
+        function atualizarTabelas() {
+            // 1. Tabela do Admin (Financeiro)
+            const tbodyAdmin = document.getElementById('tabela-financeiro');
+            tbodyAdmin.innerHTML = ''; // Limpa a tabela
+            let totalPendente = 0;
+
+            bancoDeDados.taxas.forEach(taxa => {
+                let statusBadge = taxa.status === 'Pago' 
+                    ? '<span class="badge badge-success">Pago</span>' 
+                    : '<span class="badge badge-warning">Pendente</span>';
+                
+                let botoesAcao = taxa.status === 'Pago'
+                    ? '<button class="btn-table-action" disabled style="opacity:0.5; cursor:not-allowed;"><i class="fa-solid fa-check"></i> Recebido</button>'
+                    : `<button class="btn-table-action receber" onclick="receberPagamento(${taxa.id})"><i class="fa-solid fa-hand-holding-dollar"></i> Receber</button>
+                       <button class="btn-table-action whatsapp" onclick="alert('Cobrando ${taxa.feirante}...')"><i class="fa-brands fa-whatsapp"></i> Cobrar</button>`;
+
+                if (taxa.status === 'Pendente') totalPendente += taxa.valor;
+
+                tbodyAdmin.innerHTML += `
+                    <tr>
+                        <td>${taxa.data}</td>
+                        <td style="font-weight: 600;">${taxa.feirante}</td>
+                        <td style="color: ${taxa.status === 'Pendente' ? 'var(--danger)' : 'var(--success)'}; font-weight: 600;">R$ ${taxa.valor.toFixed(2)}</td>
+                        <td>${statusBadge}</td>
+                        <td>${botoesAcao}</td>
+                    </tr>
+                `;
+            });
+
+            // Atualiza os totais do Admin
+            document.getElementById('badge-total-pendente').textContent = `Total Pendente: R$ ${totalPendente.toFixed(2)}`;
+            document.getElementById('kpi-pendentes').textContent = `R$ ${totalPendente.toFixed(2)}`;
+
+            // 2. Tabela do Feirante (Minhas Taxas - Filtra apenas o Cachorro Quente)
+            const tbodyFeirante = document.getElementById('tabela-feirante');
+            tbodyFeirante.innerHTML = '';
+            let totalDevendoFeirante = 0;
+            let totalPagoFeirante = 0;
+
+            const minhasTaxas = bancoDeDados.taxas.filter(t => t.feirante === "Cachorro Quente");
+
+            minhasTaxas.forEach(taxa => {
+                if (taxa.status === 'Pendente') totalDevendoFeirante += taxa.valor;
+                if (taxa.status === 'Pago') totalPagoFeirante += taxa.valor;
+
+                tbodyFeirante.innerHTML += `
+                    <tr>
+                        <td>${taxa.data}</td>
+                        <td>R$ ${taxa.valor.toFixed(2)}</td>
+                        <td>${taxa.status === 'Pago' ? '<span class="badge badge-success">Pago</span>' : '<span class="badge badge-danger">Pendente</span>'}</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('feirante-total-devedor').textContent = `R$ ${totalDevendoFeirante.toFixed(2)}`;
+            document.getElementById('feirante-total-pago').textContent = `R$ ${totalPagoFeirante.toFixed(2)}`;
+        }
+
+        // Ação do Admin: Dar baixa em um pagamento
+        function receberPagamento(idTaxa) {
+            if(confirm("Confirmar que o pagamento foi recebido?")) {
+                // Encontra a taxa no banco e muda o status
+                const taxa = bancoDeDados.taxas.find(t => t.id === idTaxa);
+                taxa.status = 'Pago';
+                
+                // Redesenha as tabelas para refletir a mudança
+                atualizarTabelas();
+            }
+        }
+
+        // Funções de UI (Modais e Impressão)
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        
+    </script>
+</body>
+</html>
